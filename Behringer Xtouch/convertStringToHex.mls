@@ -1,0 +1,205 @@
+
+{ function onEscape(Oldstring: string): string;
+var
+  Letters: array[1..7] of string;
+  HexValues: array[1..7] of string;
+  Part: string;
+  PartHex: string;
+  Newstring: string;
+  PartInteger: integer;
+  i: integer;
+  TopTest: array[1..7] of string;
+begin
+    Newstring := '';
+  for i := 1 to 7 do
+    begin
+        //systemlog('From onEscape, printing I: ' + inttostr(i));
+        //Letters[i] := Copy(Oldstring, i, 1);
+        Part := Copy(Oldstring, i, 1);
+        PartInteger := Ord(Part[1]);
+        //systemlog('Printing PartInteger: ' + inttostr(PartInteger));
+        
+        // PartHex := IntToHex(PartInteger, 2);
+        PartHex := IntToHex(PartInteger, 2);
+        //systemlog('Printing PartHex: ' + PartHex);
+      
+        // Result[i] := PartHex;
+        TopTest[i] := PartHex;
+        Newstring := Newstring + PartHex;
+    end;
+    Result := Newstring;
+end; }
+
+{ function onTesting(Oldstring: string): array [1..7] of string;
+var
+  Part: string;
+  PartHex: string;
+  PartInteger: integer;
+  i: integer;
+begin
+  for i := 1 to 7 do
+    begin
+        //systemlog('From onEscape, printing I: ' + inttostr(i));
+        Part := Copy(Oldstring, i, 1);
+        PartInteger := Ord(Part[1]);
+        //systemlog('Printing PartInteger: ' + inttostr(PartInteger));
+        
+        // PartHex := IntToHex(PartInteger, 2);
+        PartHex := IntToHex(PartInteger, 2);
+        //systemlog('Printing PartHex: ' + PartHex);
+      
+        Result[i] := PartHex;
+       // Result[i] := #$48;
+    end;
+    //systemlog(Result[1]);
+end; }
+
+function lookupColor(Color: string; InvertedTop: integer; InvertedBottom:integer):string;
+    var
+        offset: integer;
+    begin
+        // TODO, make the offset work.....
+        //offset := InvertedTop*16 + InvertedBottom*32;
+        offset := 0;
+        
+        if(LowerCase(Color) = 'black') then
+        begin
+            Result := inttostr(0 + offset);
+        end;
+
+        if(LowerCase(Color) = 'red') then
+        begin
+            Result := inttostr(1 + offset);
+        end;
+
+        if(LowerCase(Color) = 'green') then
+        begin
+            Result := inttostr(2 + offset);
+        end;
+
+        if(LowerCase(Color) = 'yellow') then
+        begin
+            Result := inttostr(3 + offset);
+        end;
+
+        if(LowerCase(Color) = 'blue') then
+        begin
+            Result := inttostr(4 + offset);
+        end;
+
+        if(LowerCase(Color) = 'magenta') then
+        begin
+            Result := inttostr(5 + offset);
+        end;
+
+        if(LowerCase(Color) = 'cyan') then
+        begin
+            Result := inttostr(6 + offset);
+        end;
+
+        if(LowerCase(Color) = 'white') then
+        begin
+            Result := inttostr(7 + offset);
+        end;
+    end;
+
+
+
+function setScribbleData(Channel: integer; Color: string; InvertedTop: integer; InvertedBottom: integer; TopString: string; BottomString: string): string;
+var
+    Start, Manufacturer, DeviceId, Unknown, SysExChannel, EndString, SysExString, Newstring, Part, PartUrlSafe: string;
+    i, PartInteger: integer;
+    TopTest : array [1..7] of integer;
+    TopTestTest : array [1..7] of string;
+    PartHex: string;
+
+begin
+    MidiOutOpen(1);
+
+    //systemlog(lookupColor(Color, InvertedTop, InvertedBottom));
+    //systemlog('From setScribbledata: ' + TopString);
+
+
+    Start := #$f0;
+    Manufacturer := #$00+#$20+#$32;
+    DeviceId := #$15;
+    Unknown := #$4c;
+    SysExChannel := inttostr(Channel);  // Må få channel fra funksjonen
+    Color := lookupColor(Color, InvertedTop, InvertedBottom);
+
+    //TopTest := onTesting(TopString);
+    // TopTest[0] := #$68;
+    //TopTest[1] := #$68;
+    { TopTest[2] := #$68;
+    TopTest[3] := #$68;
+    TopTest[4] := #$68;
+    TopTest[5] := #$68;
+    TopTest[6] := #$68;
+    TopTest[7] := #$68; }
+
+    // Testin Testing
+    for i := 1 to 7 do
+        begin
+            Part := Copy(TopString, i, 1);
+            PartInteger := Ord(Part[1]);
+            //systemlog('Printing PartInteger: ' + inttostr(PartInteger));
+            
+            //PartHex := inttostr(PartInteger);
+            PartHex := IntToHex(PartInteger, 2);
+            //systemlog('Printing PartHex: ' + PartHex);
+        
+            //TopTest[i] := PartHex;
+            TopTest[i] := 31;
+        end;
+
+systemlog(inttostr(TopTest[1]));
+
+    // top_hex = [ord(char) for char in (str(top)+"\0"*7)[:7]]
+
+    
+    BottomString := #$00+#$00+#$00+#$00+#$00+#$00+#$00;
+
+    //systemlog(inttostr(TopTest[1]));
+    EndString := #$f7;
+
+
+   {  MidiOutSysEx(1, Start + Manufacturer + DeviceId + Unknown + SysExChannel + Color + 
+        TopTest[1] + TopTest[2] + TopTest[3] + TopTest[4] + TopTest[5] + TopTest[6] + TopTest[7] + 
+        BottomString + EndString); }
+end;
+
+
+
+{ 
+    function setScribbleData(Color: string; Top: string; Bottom: string; TopString: string; BottomString:string): string;
+    var
+    Newstring, Part, PartUrlSafe: string;
+    i, PartInteger: integer;
+    begin
+        systemlog(Color);
+
+    Newstring := '';
+    for i := 1 to Length(Oldstring) do
+        begin
+        // Get the current iteration letter
+        Part := Copy(Oldstring, i, 1);
+        // Get the according integer
+        PartInteger := Ord(Part[1]);
+        // Convert to Hex (Percent encoded)
+        PartUrlSafe := '+#$' + IntToHex(PartInteger, 2);
+
+        Newstring := Newstring + PartUrlSafe;
+        end;
+    Result := Newstring;
+    systemlog(Result);
+    end;
+ }
+
+
+procedure OnLoad; 
+begin
+    setScribbleData(01, 'green', 0, 0, '1234567', 'Hallo');
+end;	
+
+begin    
+end.

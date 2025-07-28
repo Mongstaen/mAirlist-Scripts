@@ -1,0 +1,649 @@
+//  Launchpad Script
+//  Written by Thomas Mongstad.
+//  Inspired by Thomas "Kloppi" Kloppholzs' Mairlist-Launchpad-Script
+//  https://github.com/Lexorius/Mairlist-Launchpad-Script
+//  Version 0.1.1
+/////////////////////////////////////////////////////////////////////
+
+const
+    testing = 1;
+
+    Launchpad_Device = 4;
+  
+    // Setup LED colours
+    cOff   = 12;        // LED - OFF
+
+    cLowRed = 13;		// LED low Red
+    cHighRed = 15;		// LED High Red
+    cBlinkRed = 11;		// LED Blink RED
+  
+    cLowGreen = 28;		// LED low Green
+    cHighGreen = 60;	// LED HIGH Green
+    cBlinkGreen = 56;	// LED BlInK Green
+
+    cLowAmber = 29;		// LED low Amber
+    cHighAmber = 63;	// LED High Amber
+    cBlinkAmber = 59;	// LED Blink Amber
+
+    cBlinkYellow = 58;	// LED Blink Yellow
+    cHighYellow = 62;	// LED High Yellow
+
+var
+    Buttons: array[-1..100] of integer;
+    RightButtons: array[-1..8] of integer;
+    TopButtons: array[-1..8] of integer;
+    Countdown: integer;
+    PlayerPad : array[-1..10] of array[-1..64] of integer;
+    Cartwall : array[-1..64] of integer;
+
+
+function initializeLaunchpad(value:integer):boolean;
+var
+    i: integer;
+begin
+    i:=0;
+        // Listing Midi devices to Log
+        MidiOutListdevices;
+
+        // Connecting to Launchpad
+        midioutopen(Launchpad_Device);
+
+            // Clear old LEDs
+            midiout(Launchpad_Device, 176, 0, 0);
+
+            // Set Timer
+            midiout(Launchpad_Device, 176, 0, 40);
+
+            // Initialize buttons on the right
+            RightButtons[0] := 8;
+            RightButtons[1] := 24;
+            RightButtons[2] := 40;
+            RightButtons[3] := 56;
+            RightButtons[4] := 72;
+            RightButtons[5] := 88;
+            RightButtons[6] := 104;
+            RightButtons[7] := 120;
+
+            // Initialize buttons on the top
+            TopButtons[0] := 104;
+            TopButtons[1] := 105;
+            TopButtons[2] := 106;
+            TopButtons[3] := 107;
+            TopButtons[4] := 108;
+            TopButtons[5] := 109;
+            TopButtons[6] := 110;
+            TopButtons[7] := 111;
+
+            // Initialize buttons
+            // Row 1
+            for i := 0 to 7 do
+                begin  
+                    Buttons[i] := i;
+                end;
+
+            // Row 2
+            for i := 8 to 15 do
+                begin  
+                    Buttons[i] := i+8;
+                end;
+            
+            // Row 3
+            for i := 16 to 23 do
+                begin  
+                    Buttons[i] := i+16;
+                end;
+            
+            // Row 4
+            for i := 24 to 31 do
+                begin  
+                    Buttons[i] := i+24;
+                end;
+            
+            // Row 5
+            for i := 32 to 39 do
+                begin  
+                    Buttons[i] := i+32;
+                end;
+            
+            // Row 6
+            for i := 40 to 47 do
+                begin  
+                    Buttons[i] := i+40;
+                end;
+            
+            // Row 7
+            for i := 48 to 55 do
+                begin  
+                    Buttons[i] := i+48;
+                end;
+            
+            // Row 8
+            for i := 56 to 63 do
+                begin  
+                    Buttons[i] := i+56;
+                end;
+            
+
+            // Player Pad 1
+            PlayerPad[0][0] := Buttons[32]
+            PlayerPad[0][1] := Buttons[33]
+            PlayerPad[0][2] := Buttons[34]
+            PlayerPad[0][3] := Buttons[35]
+            PlayerPad[0][4] := Buttons[40]
+            PlayerPad[0][5] := Buttons[41]
+            PlayerPad[0][6] := Buttons[42]
+            PlayerPad[0][7] := Buttons[43]
+            PlayerPad[0][8] := Buttons[48]
+            PlayerPad[0][9] := Buttons[49]
+            PlayerPad[0][10] := Buttons[50]
+            PlayerPad[0][11] := Buttons[51]
+            PlayerPad[0][12] := Buttons[56]
+            PlayerPad[0][13] := Buttons[57]
+            PlayerPad[0][14] := Buttons[58]
+            PlayerPad[0][15] := Buttons[59]
+
+            // Player Pad 2
+            PlayerPad[1][0] := Buttons[36]
+            PlayerPad[1][1] := Buttons[37]
+            PlayerPad[1][2] := Buttons[38]
+            PlayerPad[1][3] := Buttons[39]
+            PlayerPad[1][4] := Buttons[44]
+            PlayerPad[1][5] := Buttons[45]
+            PlayerPad[1][6] := Buttons[46]
+            PlayerPad[1][7] := Buttons[47]
+            PlayerPad[1][8] := Buttons[52]
+            PlayerPad[1][9] := Buttons[53]
+            PlayerPad[1][10] := Buttons[54]
+            PlayerPad[1][11] := Buttons[55]
+            PlayerPad[1][12] := Buttons[60]
+            PlayerPad[1][13] := Buttons[61]
+            PlayerPad[1][14] := Buttons[62]
+            PlayerPad[1][15] := Buttons[63]
+
+            // Cartwall Row 1
+            Cartwall[1] := Buttons[0]
+            Cartwall[2] := Buttons[1]
+            Cartwall[3] := Buttons[2]
+            Cartwall[4] := Buttons[3]
+            Cartwall[5] := Buttons[4]
+            Cartwall[6] := Buttons[5]
+            Cartwall[7] := Buttons[6]
+            Cartwall[8] := Buttons[7]
+
+            // Cartwall Row 2
+            Cartwall[9] := Buttons[8]
+            Cartwall[10] := Buttons[9]
+            Cartwall[11] := Buttons[10]
+            Cartwall[12] := Buttons[11]
+            Cartwall[13] := Buttons[12]
+            Cartwall[14] := Buttons[13]
+            Cartwall[15] := Buttons[14]
+            Cartwall[16] := Buttons[15]
+
+            result:=true;	
+
+end;
+
+function triggerAssistLED(value:integer):boolean;
+var
+    i: integer;
+begin
+for i := 0 to 7 do
+        begin
+            midiout(Launchpad_Device, 176, TopButtons[i], cHighGreen);
+        end;
+end;
+
+function triggeronairLED(value:integer):boolean;
+var
+    i: integer;
+begin
+    midiout(Launchpad_Device, 144, RightButtons[2], cHighRed); 
+end;
+
+
+// Called when script is loaded
+procedure OnLoad;
+begin
+    initializeLaunchpad(0);
+    triggerAssistLED(0);
+    triggeronairLED(0);
+    Countdown := 0;
+
+    //Uncomment to light single button based on button ID
+    //midiout(Launchpad_Device, 144, RightButtons[0], cHighRed);
+
+end;
+
+// Turn "ON Air" button red  
+procedure OnOnAir;
+begin
+    midiout(Launchpad_Device, 144, RightButtons[2], cHighRed); 
+end;
+
+// Turn "ON Air" button off  
+procedure OnOffAir;
+begin
+    midiout(Launchpad_Device, 144, RightButtons[2], cOff); 
+end;
+
+// Turn TopButtons Red if Auto mode is active
+procedure OnAutomationOn(PlaylistIndex: integer);
+var
+    i: integer;
+begin
+    // Loop for all 8 buttons
+    for i := 0 to 7 do
+        begin
+            midiout(Launchpad_Device, 176, TopButtons[i], cHighRed);
+            systemlog('Script notification: Trigged Auto Mode');
+
+        end;
+end;
+
+// Turn TopButtons Green if Assist mode is active
+procedure OnAutomationOff(PlaylistIndex: integer);
+var
+    i: integer;
+begin
+    // Loop for all 8 buttons
+    for i := 0 to 7 do
+        begin
+            midiout(Launchpad_Device, 176, TopButtons[i], cHighGreen);
+            systemlog('Script notification: Trigged Assist Mode');
+        end;
+end;
+
+
+// Called when (playlist) player changes its state
+procedure OnPlayerStateChange(PlaylistIndex: integer; PlayerIndex: integer; OldState: TPlayerState; NewState: TPlayerState; Item: IPlaylistItem);
+var p:integer;
+begin
+
+if  (OldState = psStopped) then 
+	begin
+        for p := 0 to 15 do
+            begin
+                midiout(Launchpad_Device, 144, PlayerPad[PlayerIndex][p], cHighAmber);
+            end;
+	end
+else if (NewState = psLoaded) then 
+	begin
+        for p := 0 to 15 do
+            begin
+                midiout(Launchpad_Device, 144, PlayerPad[PlayerIndex][p], cHighGreen);
+            end;
+	end 
+else if (NewState = psEmpty) then 
+	begin
+        for p := 0 to 15 do
+            begin
+                midiout(Launchpad_Device, 144, PlayerPad[PlayerIndex][p], cOff);
+            end;
+	end
+else if (NewState = psPlaying) then 
+	begin
+        for p := 0 to 15 do
+            begin
+                midiout(Launchpad_Device, 144, PlayerPad[PlayerIndex][p], cHighRed);
+            end;
+	end
+else if (NewState = psFading) then 
+	begin
+        for p := 0 to 15 do
+            begin
+                midiout(Launchpad_Device, 144, PlayerPad[PlayerIndex][p], cBlinkRed);
+            end;
+	end
+else if (NewState = psError) then 
+	begin
+        for p := 0 to 15 do
+            begin
+                midiout(Launchpad_Device, 144, PlayerPad[PlayerIndex][p], cBlinkYellow);
+            end;
+	end
+
+else if (NewState = psLoading) then 
+	begin
+        for p := 0 to 15 do
+            begin
+                midiout(Launchpad_Device, 144, PlayerPad[PlayerIndex][p], cBlinkGreen);
+            end;
+	end;	
+	
+end;
+
+// Called when a Cartwall has a State Change
+procedure OnCartwallPlayerStateChange(PlayerIndex: integer;
+  OldState: TPlayerState; NewState: TPlayerState;
+  Item: IAudioCartwallItem; PlaylistItem: IPlaylistItem;
+  OnAirMode: TCartwallOnAirMode);
+begin
+
+if  (OldState = psStopped) then 
+	begin
+		midiout(Launchpad_Device,144, Cartwall[PlayerIndex],cHighAmber);
+	end
+else if (NewState = psLoaded) then 
+	begin
+		midiout(Launchpad_Device,144, Cartwall[PlayerIndex],cLowGreen);
+	end
+else if (NewState = psEmpty) then 
+	begin
+		midiout(Launchpad_Device,144, Cartwall[PlayerIndex],cOff);
+	end
+else if (NewState = psPlaying) then 
+	begin
+		midiout(Launchpad_Device,144, Cartwall[PlayerIndex],cHighRed);
+	end
+else if (NewState = psFading) then 
+	begin
+		midiout(Launchpad_Device,144, Cartwall[PlayerIndex],cBlinkRed);
+	end
+else if (NewState = psLoading) then 
+	begin
+		midiout(Launchpad_Device,144, Cartwall[PlayerIndex],cBlinkGreen);
+	end
+else if (NewState = psStopped) then 
+	begin
+		midiout(Launchpad_Device,144, Cartwall[PlayerIndex],cHighGreen);
+	end;	
+
+end;
+
+
+
+
+// Called when a MIDI message is received
+procedure OnMidiMessage(Device: integer; Status, Data1, Data2: byte);
+var 
+row, i, i_div:integer;
+begin
+row := 0
+i := 0
+i_div := 0
+
+// Uncomment to see Data1 value of Data1
+//systemlog(Inttostr(Data1));
+
+    if(Status = 176) then
+        begin
+            // Toggle between AUTO and ASSIST
+            if (Data1 = 104) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('AUTOMATION 1 ON/OFF');
+                end
+            else if (Data1 = 105) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('AUTOMATION 1 ON/OFF');
+                end
+            else if (Data1 = 106) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('AUTOMATION 1 ON/OFF');
+                end
+            else if (Data1 = 107) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('AUTOMATION 1 ON/OFF');
+                end
+            else if (Data1 = 108) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('AUTOMATION 1 ON/OFF');
+                end
+            else if (Data1 = 109) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('AUTOMATION 1 ON/OFF');
+                end
+            else if (Data1 = 110) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('AUTOMATION 1 ON/OFF');
+                end
+            else if (Data1 = 111) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('AUTOMATION 1 ON/OFF');
+                end
+
+        end;
+
+    if(Status = 144) then
+        begin
+            // If any of right button are pressed
+            if (Data1 = 8) and (Data2 = 127) then
+                begin
+                    systemlog('Ingen funksjon satt opp');
+                end
+            else if (Data1 = 24) and (Data2 = 127) then
+                begin
+                    systemlog('Ingen funksjon satt opp');
+                end
+            else if (Data1 = 40) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('ON/OFF AIR');
+                end
+            else if (Data1 = 56) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL SHOW/HIDE');
+                end
+            else if (Data1 = 72) and (Data2 = 127) then
+                begin
+                    systemlog('Ingen funksjon satt opp');
+                end
+            else if (Data1 = 88) and (Data2 = 127) then
+                begin
+                    systemlog('Ingen funksjon satt opp');
+                end
+            else if (Data1 = 104) and (Data2 = 127) then
+                begin
+                    systemlog('Ingen funksjon satt opp');
+                end
+            else if (Data1 = 120) and (Data2 = 127) then
+                begin
+                    systemlog('Ingen funksjon satt opp');
+                end
+
+            // If any of Row 1 Cartwall are pressed
+            else if (Data1 = 0) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 1 CLICK');
+                end
+            else if (Data1 = 1) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 2 CLICK');
+                end
+            else if (Data1 = 2) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 3 CLICK');
+                end
+            else if (Data1 = 3) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 4 CLICK');
+                end
+            else if (Data1 = 4) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 5 CLICK');
+                end
+            else if (Data1 = 5) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 6 CLICK');
+                end
+            else if (Data1 = 6) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 7 CLICK');
+                end
+            else if (Data1 = 7) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 8 CLICK');
+                end
+
+            // If any of row 2 Cartwall are pressed
+            else if (Data1 = 16) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 9 CLICK');
+                end
+            else if (Data1 = 17) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 10 CLICK');
+                end
+            else if (Data1 = 18) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 11 CLICK');
+                end
+            else if (Data1 = 19) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 12 CLICK');
+                end
+            else if (Data1 = 20) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 13 CLICK');
+                end
+            else if (Data1 = 21) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 14 CLICK');
+                end
+            else if (Data1 = 22) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 15 CLICK');
+                end
+            else if (Data1 = 23) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('CARTWALL 16 CLICK');
+                end
+            
+
+            // If any of Player 1 Playerpads are pressed
+            else if (Data1 = 64) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 65) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 66) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 67) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 80) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 81) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 82) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 83) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 96) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 97) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 98) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 99) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 112) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 113) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 114) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            else if (Data1 = 115) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-1 START/FADEOUT');
+                end
+            
+
+            // If any of Player 2 Playerpads are pressed
+            else if (Data1 = 68) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 69) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 70) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 71) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 84) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 85) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 86) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 87) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 100) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 101) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 102) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 103) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 116) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 117) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 118) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            else if (Data1 = 119) and (Data2 = 127) then
+                begin
+                    ExecuteCommand('PLAYER 1-2 START/FADEOUT');
+                end
+            end;
+        end;
+            
+
+begin    
+end.

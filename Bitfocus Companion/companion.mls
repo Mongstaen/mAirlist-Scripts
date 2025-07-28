@@ -1,0 +1,28 @@
+const 
+    URL = 'http://10.0.0.120:8888/press/bank';
+    PAGE = '1';
+    BANK = '6';
+
+    FULLURL = URL + '/' + PAGE + '/' + BANK;
+
+procedure OnLoad;
+begin
+    SystemLog('Lastet script for oppdatering av Companion.');
+end;
+
+// Called when mAirList goes ON AIR
+procedure OnOnAir;
+begin
+    sleep(1000);
+    HTTPGetAsync(FULLURL + '/down');
+end;
+
+// Called when mAirList goes OFF AIR
+procedure OnOffAir;
+begin
+    sleep(1000);
+    HTTPGetAsync(FULLURL + '/up');
+end;
+
+begin
+end.

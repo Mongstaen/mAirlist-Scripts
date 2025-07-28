@@ -1,0 +1,117 @@
+// Standard Background Script
+// Written by Thomas Mongstad
+/////////////////////////////
+
+const  
+    DEBUG = True;    // Set to false in production
+
+var
+    i: integer;
+    GO_LIVE: boolean;
+    GO_OFFAIR: boolean;
+
+// Custom procedures
+procedure WriteDebug(message: String);
+begin
+    if (DEBUG) then
+    begin
+        SystemLog('Script debug: ' + message);
+    end;
+end;
+
+{ 
+    Event in mAirlist will check state of GO_LIVE every hour. 
+    If True, system will go live. 
+    If False, nothing will happen.
+}
+procedure GoLiveTOTH;
+begin
+    if(GO_LIVE) then begin
+        Sleep(5000);
+        WriteDebug('YES! GO Live');
+        ExecuteCommand('AUTOMATION 1 ON');
+        ExecuteCommand('ON AIR');
+        ExecuteCommand('AUTOMATION 1 PLAY');
+        ExecuteCommand('GO_LIVE FALSE');
+    end;
+end;
+
+procedure GoOffAirTOTH;
+begin
+    if(GO_OFFAIR) then begin
+        WriteDebug('YES! GO OFF AIR');
+        ExecuteCommand('AUTOMATION 1 STOP');
+        Sleep(3000);
+        ExecuteCommand('STUDIO_STOP PRESS');
+        GO_OFFAIR := False;
+    end;
+end;
+
+procedure ClearAll;
+begin
+    WriteDebug('Clearing playlist in two seconds..');
+    sleep(2000);
+    ExecuteCommand('PLAYLIST 1 CLEAR');
+    WriteDebug('Playlist cleared');
+end;
+
+// mAirlist procedures
+procedure OnLoad;
+begin
+    SystemLog('Loaded Standard Background Script');
+    GO_LIVE := False;
+end;
+
+procedure OnExecuteCommand(Command: string);
+begin
+    //WriteDebug(Command); 
+    if Command = 'TOTH_CHECK' then begin
+        WriteDebug('Running TOTH checks..');
+        GoLiveTOTH();
+        GoOffAirTOTH();
+    end;
+
+    if Command = 'GO_LIVE TRUE' then begin
+        GO_LIVE := True;
+        GO_OFFAIR := False;
+        WriteDebug('This Studio will go live at TOTH');
+    end;
+
+    if Command = 'GO_LIVE FALSE' then begin
+        GO_LIVE := False;
+    end;
+
+    if Command = 'GO_OFFAIR TRUE' then begin
+        GO_OFFAIR := True;
+        GO_LIVE := False;
+        WriteDebug('This Studio will go off air at TOTH');
+    end;
+
+    if Command = 'GO_OFFAIR FALSE' then begin
+        GO_OFFAIR := False;
+    end;
+
+
+    if Command = 'DELAYED CLEAR' then begin
+        ClearAll();
+    end;
+
+    if Command = 'MESSAGE_TO_VIRTUALSTUDIO' then begin
+        ShowMessage('Virtual Studio will go live at TOTH!');
+    end;
+
+    if Command = 'MESSAGE_TO_CURRENT' then begin
+        ShowMessage('This Studio will go live at TOTH!');
+    end;
+
+    if Command = 'CONFIRMATION_FROM_VIRTUALSTUDIO' then begin
+        SystemLog('Confirmation from virtual studio. Going live at TOTH!');
+        ShowMessage('Melding fra Nettradio: Bekrefter live fra neste time.');
+        //ExecuteCommand('BUTTON.TOTHBUTTON TEXT HALLO');
+
+    end;
+
+end;
+
+begin    
+end.

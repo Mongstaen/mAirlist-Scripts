@@ -1,0 +1,6 @@
+procedure OnLoad; 
+begin
+ComPort('COM6').SetParameters(115200, 8, 'N', 1);
+ComPort('COM6').Open;
+ComPort('COM6').SendStr('led.toggle()');
+end;	

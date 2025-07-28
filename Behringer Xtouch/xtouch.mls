@@ -1,0 +1,403 @@
+//  Behringer x-Touch Extender script
+//  Written by Thomas Mongstad.
+//  Version 0.1.1
+/////////////////////////////////////////////////////////////////////
+
+const
+    DEVICE = 'Behringer X-Touch Extender';
+    DEBUG = True; // Set to False in Production
+    MAIRLIST_DEVICE = 1;
+
+    PLAYERAMOUNT = 2;
+
+    // Button states
+    cOff = 0; //Button off
+    cBlink = 64; // Button blinking
+    cOn = 127; // Button On
+
+var
+    TopEncoders:    array[1..8] of integer;
+    RecButtons:     array[1..8] of integer;
+    SoloButtons:    array[1..8] of integer;
+    MuteButtons:    array[1..8] of integer;
+    SelectButtons:  array[1..8] of integer;
+    Faders:         array[1..8] of integer;
+    
+    FaderStatus:    array[1..8] of Boolean;
+
+    PlayerVolume:   array[1..PLAYERAMOUNT] of integer;
+    PlayerCue:      array[1..PLAYERAMOUNT] of Boolean;
+    PlayerMuted:    array[1..PLAYERAMOUNT] of Boolean;
+    PlayerPFL:      array[1..PLAYERAMOUNT] of Boolean;
+
+// Logging only if DEBUG is true
+procedure writeDebug(message: String);
+begin
+    if(DEBUG = true) then
+    begin
+        SystemLog(message);
+    end;
+end;
+
+procedure initController;
+var
+    i: integer;
+begin
+    writeDebug(DEVICE + ' initController called.');
+
+    for i:= 0 to 7 do
+    begin
+        // Define Data1 ID for TopEncoders (80-87)
+        TopEncoders[i + 1]      := i + 80;
+
+        // Define Data1 ID for RecButtons (8-15)
+        RecButtons[i + 1]       := i + 8;
+
+        // Define Data1 ID for SoloButtons (16-23)
+        SoloButtons[i + 1]      := i + 16;
+
+        // Define Data1 ID for MuteButtons (24-31)
+        MuteButtons[i + 1]      := i + 24;
+
+        // Define Data1 ID for SelectButtons (32-39)
+        SelectButtons[i + 1]    := i + 32;
+
+        // Define Data1 ID for Faders (70-77)
+        Faders[i + 1]           := i + 70;
+    end;
+
+    // Set initial volume in mAirlist for all players.
+    for i:= 1 to PLAYERAMOUNT do
+    begin
+        PlayerVolume[i] := -200;
+    end;
+
+    writeDebug(DEVICE + ' initController finished.');
+end;
+
+procedure openController;
+begin
+    writeDebug(DEVICE + ' openController called.');
+    if (DEBUG = true) then
+    begin
+        // List available MIDI Devices
+        MidiOutListdevices;
+    end;
+    MidiOutOpen(MAIRLIST_DEVICE);
+end;
+
+procedure closeController;
+begin
+    writeDebug(DEVICE + ' closeController called.');
+    MidiOutClose(MAIRLIST_DEVICE);
+    writeDebug(DEVICE + ' closeController finished.');
+end;
+
+procedure setPlayerVolume;
+var
+    i: integer;
+begin
+    writeDebug(DEVICE + ' setPlayerVolume called.');
+    for i:= 1 to PLAYERAMOUNT do
+    begin
+        // Set volume in mAirlist
+        ExecuteCommand('PLAYER 1-'+inttostr(i)+' VOLUME '+inttostr(PlayerVolume[i]));
+        // Moves fader down
+        midiout(MAIRLIST_DEVICE, 176, Faders[i], 0); 
+    end;
+    writeDebug(DEVICE + ' setPlayerVolume finished.');
+end;
+
+procedure setCueLights;
+var
+    i: integer;
+begin
+    writeDebug(DEVICE + ' setCueLights called.');
+    for i:= 1 to PLAYERAMOUNT do
+    begin
+        PlayerCue[i] := True;
+        if (PlayerCue[i] = True) then 
+        begin
+            midiout(MAIRLIST_DEVICE, 144, SelectButtons[i], cOn);
+        end
+        else
+        begin
+            midiout(MAIRLIST_DEVICE, 144, SelectButtons[i], cOff);
+        end;
+    end;
+    writeDebug(DEVICE + ' setCueLights finished.');
+end;
+
+// Called when script is loaded
+procedure OnLoad;
+var 
+    i: integer;
+begin
+    writeDebug('OnLoad called.')
+    openController;
+    initController;
+    setPlayerVolume;
+    setCueLights;
+
+    if(DEBUG = False) then
+    SystemLog('Loaded Behringer X-Touch Script. Debug disabled');
+
+    for i:= 1 to PLAYERAMOUNT do
+    begin
+        FaderStatus[i]:= False;
+        PlayerMuted[i]:= False;
+        PlayerPFL[i]:= False;
+    end;
+
+    //MidiOutSysEx(1, '#$f0+#$00+#$20+#$32+#$42+#$4c+#$00+#$00+#$00+#$47+#$F7');
+    //MidiOutSysEx(1, '00+F0+00+00+66+14+12+00+41+32+33+34+35+41+20+F7');
+    //MidiOutSysEx(1, '00 F0 00 20 32 15 4C 7 1 F7');
+    //MidiOutSysEx(1, 'F0 00 20 32 15 4C 00 04 01 F7');
+     //   MidiOutSysEx(1, '00+F0+00+20+32015+4C+07+01+F7');
+   //   MidiOutSysEx(1, '00 F0 00 00 66 14 72 00 01 02 03 04 05 06 07 F7');
+    //  MidiOutSysEx(1, '00 20 32 42 4C 08 00 41 32 33 34 35 41 20')
+        //MidiOutSysEx(1, '00 20 32 42 12 00 48 65 6C 6C 6F')
+
+        
+    MidiOutSysEx(1, #$f0+#$00+#$20+#$32+#$15+#$4c+#$00+#$37+#$50+#$6C+#$61+#$79+#$65+#$72+#$00+#$31+#$00+#$00+#$00+#$00+#$00+#$00+#$f7);
+    MidiOutSysEx(1, #$f0+#$00+#$20+#$32+#$15+#$4c+#$01+#$16+#$50+#$6C+#$61+#$79+#$65+#$72+#$00+#$32+#$00+#$00+#$00+#$00+#$00+#$00+#$f7);
+    MidiOutSysEx(1, #$f0+#$00+#$20+#$32+#$15+#$4c+#$02+#$02+#$68+#$65+#$6c+#$6c+#$6f+#$00+#$00+#$77+#$6f+#$72+#$6c+#$64+#$00+#$00+#$f7);
+    MidiOutSysEx(1, #$f0+#$00+#$20+#$32+#$15+#$4c+#$03+#$03+#$68+#$65+#$6c+#$6c+#$6f+#$00+#$00+#$77+#$6f+#$72+#$6c+#$64+#$00+#$00+#$f7);
+    MidiOutSysEx(1, #$f0+#$00+#$20+#$32+#$15+#$4c+#$04+#$04+#$68+#$65+#$6c+#$6c+#$6f+#$00+#$00+#$77+#$6f+#$72+#$6c+#$64+#$00+#$00+#$f7);
+    MidiOutSysEx(1, #$f0+#$00+#$20+#$32+#$15+#$4c+#$05+#$05+#$68+#$65+#$6c+#$6c+#$6f+#$00+#$00+#$77+#$6f+#$72+#$6c+#$64+#$00+#$00+#$f7);
+    MidiOutSysEx(1, #$f0+#$00+#$20+#$32+#$15+#$4c+#$06+#$06+#$68+#$65+#$6c+#$6c+#$6f+#$00+#$00+#$77+#$6f+#$72+#$6c+#$64+#$00+#$00+#$f7);
+    MidiOutSysEx(1, #$f0+#$00+#$20+#$32+#$15+#$4c+#$07+#$11+#$4d+#$49+#$43+#$00+#$00+#$00+#$00+#$00+#$00+#$00+#$00+#$00+#$00+#$00+#$f7);
+
+
+{     // Clear all midi settings/states
+    for i:= 0 to 127 do
+        begin
+            midiout(MAIRLIST_DEVICE, 176, i, 0);
+            midiout(MAIRLIST_DEVICE, 144, i, 0);
+        end;  }
+end;
+
+procedure OnMidiMessage(Device: integer; Status, Data1: byte; Data2: integer);
+var 
+i:integer;
+
+// Todo, stop song by unpressing selectbutton if song is playing
+
+begin
+    writeDebug('OnMidiMessage called: Status: ' + IntToStr(Status) + ', Data1: ' + IntToStr(Data1) + ', Data2: ' + IntToStr(Data2));
+
+    if(Status = 144) then
+    begin
+        for i:= 1 to PLAYERAMOUNT do
+        begin
+            if(Data1 = MuteButtons[i]) and (Data2 = 127) then
+            begin
+                if(PlayerMuted[i] = False) then
+                begin 
+                    ExecuteCommand('PLAYER 1-'+inttostr(i)+' VOLUME -200');
+                    PlayerMuted[i]:= True;
+                    midiout(MAIRLIST_DEVICE, 144, MuteButtons[i], cOn);
+                end
+                else
+                begin
+                    ExecuteCommand('PLAYER 1-'+inttostr(i)+' VOLUME ' + inttostr(PlayerVolume[i]));
+                    PlayerMuted[i]:= False;
+                    midiout(MAIRLIST_DEVICE, 144, MuteButtons[i], cOff); 
+                end;
+            end;
+
+            if(Data1 = RecButtons[i]) and (Data2 = 127) then
+            begin
+                if(PlayerPFL[i] = False) then
+                begin 
+                    ExecuteCommand('PLAYER 1-'+inttostr(i)+' PFL ON');
+                    PlayerPFL[i]:= True;
+                    midiout(MAIRLIST_DEVICE, 144, RecButtons[i], cOn);
+                end
+                else
+                begin
+                    ExecuteCommand('PLAYER 1-'+inttostr(i)+' PFL OFF');
+                    PlayerPFL[i]:= False;
+                    midiout(MAIRLIST_DEVICE, 144, RecButtons[i], cOff);
+                end;
+            end;
+
+            if(Data1 = SelectButtons[i]) and (Data2 = 127) then
+            begin
+                if(PlayerCue[i] = False) then
+                begin 
+                    PlayerCue[i]:= True;
+                    midiout(MAIRLIST_DEVICE, 144, SelectButtons[i], cOn);
+                    if(FaderStatus[i] = True) then
+                    begin
+                        ExecuteCommand('PLAYER 1-'+inttostr(i)+' START');
+                    end;
+                end
+                else
+                begin
+                    PlayerCue[i]:= False;
+                    midiout(MAIRLIST_DEVICE, 144, SelectButtons[i], cOff);
+                end;
+            end;
+        end;
+    end;
+
+
+    if(Status = 176) then
+        midiout(MAIRLIST_DEVICE, 176, Data1, Data2);
+        begin
+
+        // First two faders are for the playback.
+        for i:= 1 to 2 do
+        begin
+            if(Data1 = Faders[i]) then
+            begin
+                if(Data2 < 10) then
+                begin
+                    Faderstatus[i]:= False;
+                    ExecuteCommand('PLAYER 1-'+inttostr(i)+' STOP');
+                end;
+                
+                if(Data2 > 10) and (Faderstatus[i] = False) then
+                begin
+                    Faderstatus[i]:= True;
+                    if(PlayerCue[i] = True) then
+                    begin
+                        ExecuteCommand('PLAYER 1-'+inttostr(i)+' START');
+                    end;
+                end;
+                ExecuteCommand('PLAYER 1-'+inttostr(i)+' VOLUME '+inttostr(Data2 - 100));
+                PlayerVolume[i] := Data2 - 100;
+            end;
+        end;
+
+        // Experimental show hide cartwall
+        if(Data1 = Faders[4]) then
+            begin
+                if(Data2 < 10) then
+                begin
+                    Faderstatus[4]:= False;
+                    ExecuteCommand('CARTWALL HIDE');
+                end;
+                
+                if(Data2 > 10) and (Faderstatus[4] = False) then
+                begin
+                    Faderstatus[4]:= True;
+                    ExecuteCommand('CARTWALL SHOW');
+                end;
+                
+                ExecuteCommand('CARTWALL ALL VOLUME '+inttostr(Data2 - 100));
+        
+            end;
+
+        // Experimental LINE encoder ON
+        if(Data1 = Faders[7]) then
+            begin
+                if(Data2 < 10) then
+                begin
+                    Faderstatus[7]:= False;
+                    ExecuteCommand('ENCODER INPUT LINE OFF');
+                end;
+                
+                if(Data2 > 10) and (Faderstatus[7] = False) then
+                begin
+                    Faderstatus[7]:= True;
+                    ExecuteCommand('ENCODER INPUT LINE ON');
+                end;
+            end;
+
+        // Experimental MIC encoder ON
+        if(Data1 = Faders[8]) then
+            begin
+                if(Data2 < 10) then
+                begin
+                    Faderstatus[8]:= False;
+                    ExecuteCommand('ENCODER INPUT MIC OFF');
+                    ExecuteCommand('HOST_LIVE OFF');
+                end;
+                
+                if(Data2 > 10) and (Faderstatus[8] = False) then
+                begin
+                    Faderstatus[8]:= True;
+                    ExecuteCommand('ENCODER INPUT MIC ON');
+                    ExecuteCommand('HOST_LIVE ON');
+                end;
+            end;
+        end;
+end;
+
+// Called when (playlist) player enters PFL
+procedure OnPlayerPFLOn(PlaylistIndex: integer; PlayerIndex: integer; PFLCount: integer);
+var
+    i: integer;
+begin
+    for i:= 0 to 1 do
+    begin
+        if(PlayerIndex = i) then
+        begin
+            midiout(MAIRLIST_DEVICE, 144, RecButtons[i + 1], cOn);
+        end;
+    end;
+end;
+
+// Called when (playlist) player leaves PFL
+procedure OnPlayerPFLOff(PlaylistIndex: integer; PlayerIndex: integer; PFLCount: integer);
+var
+    i: integer;
+begin
+    for i:= 0 to 1 do
+    begin
+        if(PlayerIndex = i) then
+        begin
+            midiout(MAIRLIST_DEVICE, 144, RecButtons[i + 1], cOff);
+        end;
+    end;
+end;
+
+// Called when (playlist) player reaches EOF warning point (default: 10s before end)
+procedure OnPlayerEOFWarning(PlaylistIndex: integer; PlayerIndex: integer);
+var
+i: integer;
+begin
+    for i:= 0 to 1 do
+    begin
+        if(PlayerIndex = i) then
+        begin
+            { midiout(MAIRLIST_DEVICE, 144, RecButtons[i + 1], cBlink);
+            midiout(MAIRLIST_DEVICE, 144, SoloButtons[i + 1], cBlink);
+            midiout(MAIRLIST_DEVICE, 144, MuteButtons[i + 1], cBlink);
+            midiout(MAIRLIST_DEVICE, 144, SelectButtons[i + 1], cBlink); }
+        end;
+    end;
+end;
+
+// Called when (playlist) player changes its state
+procedure OnPlayerStateChange(PlaylistIndex: integer; PlayerIndex: integer; OldState: TPlayerState; NewState: TPlayerState; Item: IPlaylistItem);
+var p:integer;
+begin
+
+if  (OldState = psStopped) then 
+	begin
+	end
+else if (NewState = psLoaded) then 
+	begin
+	end 
+else if (NewState = psEmpty) then 
+	begin
+	end
+else if (NewState = psPlaying) then 
+	begin
+	end
+else if (NewState = psFading) then 
+	begin
+	end
+else if (NewState = psError) then 
+	begin
+	end
+else if (NewState = psLoading) then 
+	begin
+	end;	
+end;
+
+begin    
+end.
